@@ -2,7 +2,7 @@
 # Execution IAM Role
 #####
 resource "aws_iam_role" "execution" {
-  count = var.enabled ? 1 : 0
+  count = var.enabled && var.execution_role_arn == null ? 1 : 0
 
   name               = "${var.name_prefix}-execution-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
@@ -11,14 +11,14 @@ resource "aws_iam_role" "execution" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_attach" {
-  count = var.enabled ? 1 : 0
+  count = var.enabled && var.execution_role_arn == null ? 1 : 0
 
   role       = aws_iam_role.execution[0].name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 resource "aws_iam_role_policy" "read_repository_credentials" {
-  count = var.create_repository_credentials_iam_policy && var.enabled ? 1 : 0
+  count = var.create_repository_credentials_iam_policy && var.enabled && var.execution_role_arn == null ? 1 : 0
 
   name   = "${var.name_prefix}-read-repository-credentials"
   role   = aws_iam_role.execution[0].id
@@ -29,7 +29,7 @@ resource "aws_iam_role_policy" "read_repository_credentials" {
 # IAM - Task role, basic. Append policies to this role for S3, DynamoDB etc.
 #####
 resource "aws_iam_role" "task" {
-  count = var.enabled ? 1 : 0
+  count = var.enabled && var.task_role_arn == null ? 1 : 0
 
   name               = "${var.name_prefix}-task-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
@@ -38,7 +38,7 @@ resource "aws_iam_role" "task" {
 }
 
 resource "aws_iam_role_policy" "log_agent" {
-  count = var.enabled ? 1 : 0
+  count = var.enabled && var.task_role_arn == null ? 1 : 0
 
   name   = "${var.name_prefix}-log-permissions"
   role   = aws_iam_role.task[0].id
@@ -62,12 +62,12 @@ resource "aws_ecs_task_definition" "task" {
   count = var.enabled ? 1 : 0
 
   family                   = var.name_prefix
-  execution_role_arn       = aws_iam_role.execution[0].arn
+  execution_role_arn       = var.execution_role_arn == null ? aws_iam_role.execution[0].arn : var.execution_role_arn
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.task_definition_cpu
   memory                   = var.task_definition_memory
-  task_role_arn            = aws_iam_role.task[0].arn
+  task_role_arn            = var.task_role_arn == null ? aws_iam_role.task[0].arn : var.task_role_arn
 
   container_definitions = <<EOF
 [{

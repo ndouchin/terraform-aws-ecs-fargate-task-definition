@@ -80,6 +80,18 @@ variable "task_container_environment" {
   type        = map(string)
 }
 
+variable "task_role_arn" {
+  description = "The Amazon Resource Name (ARN)  specifying the ECS service role."
+  default     = null
+  type        = string
+}
+
+variable "execution_role_arn" {
+  description = "The Amazon Resource Name (ARN) of execution role."
+  default     = null
+  type        = string
+}
+
 variable "cloudwatch_log_group_name" {
   description = "CloudWatch log group name required to enabled logDriver in container definitions for ecs task."
   type        = string

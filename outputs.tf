@@ -1,6 +1,6 @@
 output "task_role_arn" {
   description = "The Amazon Resource Name (ARN) specifying the ECS service role."
-  value       = join("", aws_iam_role.task.*.arn)
+  value       = join("", aws_ecs_task_definition.task.*.task_role_arn)
 }
 
 output "task_role_name" {
@@ -25,7 +25,7 @@ output "task_role_unique_id" {
 
 output "execution_role_arn" {
   description = "The Amazon Resource Name (ARN) of execution role."
-  value       = join("", aws_iam_role.execution.*.arn)
+  value       = join("", aws_ecs_task_definition.task.*.execution_role_arn)
 }
 
 output "execution_role_name" {
